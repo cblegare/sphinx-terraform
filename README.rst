@@ -15,11 +15,3 @@ See it in action in our documentation_.
 .. _Sphinx: https://www.sphinx-doc.org/en/master/index.html
 .. _HashiCorp: https://www.hashicorp.com/
 .. _documentation: https://cblegare.gitlab.io/sphinx-terraform
-
-
-Links
-=====
-
-- `Source code`_
-
-.. _Source code:

@@ -61,7 +61,25 @@ In progress
     Stay tuned!
 
 
+.. _release-0.1:
+
+0.1 - 2022-02-15
+================
+
+.. admonition:: Downloads
+
+    :release:`0.1`
+
+
 Added
 -----
 
-soon?
+*   Directives for documenting Terraform resources, data, variables and
+    modules. See :ref:`directives`.
+
+*   Roles for cross-referencing Terraform resources, data, variables and
+    modules. See :ref:`roles`.
+
+*   Domain Index.
+
+*   Link to source code similar to :mod:`sphinx.ext.viewcode`.
