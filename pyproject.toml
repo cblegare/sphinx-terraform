@@ -1,0 +1,271 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+##############################################################################
+# -- setuptools_scm: versions from Git tags ----------------------------------
+#####
+#
+# Reference: https://github.com/pypa/setuptools_scm
+#
+# The setuptools_scm configuration file can be either
+#
+#   - pyproject.toml (must contains a [tool.pytest.ini_options] table)
+#   - setup.py (deprecated)
+#   - setup.cfg (deprecated)
+#
+###
+[tool.setuptools_scm]
+#####
+##############################################################################
+
+##############################################################################
+# -- pytest: test runner -----------------------------------------------------
+#####
+#
+# Reference: https://docs.pytest.org/en/stable/customize.html
+#
+# The pytest configuration file can be either
+#
+#   - pytest.ini
+#   - pyproject.toml (must contains a [tool.pytest.ini_options] table)
+#   - tox.ini (must contains a [pytest] section)
+#   - setup.cfg (not recommended) (contains a [tool:pytest] section)
+#
+# It is important to understand that there is no merging of configuration
+# files, as it would lead to ambiguity.
+#
+###
+[tool.pytest.ini_options]
+addopts = [
+    # Verbose mode shows context of execution on failure
+    "-v",
+    "-W", "error",
+]
+testpaths = [
+]
+norecursedirs = [
+    "test/integrated/*samples",
+]
+doctest_optionflags = [
+    "NORMALIZE_WHITESPACE",
+    "IGNORE_EXCEPTION_DETAIL",
+    "ELLIPSIS",
+]
+#####
+##############################################################################
+
+##############################################################################
+# -- coverage.py: test coverage measures -------------------------------------
+#####
+#
+# Reference: https://coverage.readthedocs.io/en/latest/config.html
+#
+# The coverage.py configuration file can be either
+#
+#   - As specified by the --rcfile=FILE flag
+#   - As specified by the COVERAGE_RCFILE environment variable
+#   - .coveragerc
+#   - setup.cfg (sections must be prefixed with "coverage:")
+#   - tox.ini (sections must be prefixed with "coverage:")
+#   - pyproject.toml (must be within the "tool.coverage" namespace,
+#     and coverage[toml] extra must be installed.)
+###
+[tool.coverage.run]
+
+# Read more about configuring coverage.py at
+#   http://coverage.readthedocs.io/en/coverage-4.5.1/config.html
+
+branch = true
+omit = [
+    "test/*",
+    "*/conf.py"  # The sphinx pytest fixture emits conf.py files, we don't want that
+]
+source = [
+    "sphinx_terraform"
+]
+data_file = "build/report/coverage/coverage"
+parallel = true
+
+[tool.coverage.paths]
+source = [
+    "src",
+    ".nox/*/site-packages"
+]
+
+[tool.coverage.report]
+# Don’t include files in the report that are 100% covered files.
+skip_covered = false
+show_missing = true
+# Sort the text report by the named column.
+# Allowed values are “Name”, “Stmts”, “Miss”, “Branch”, “BrPart”, or “Cover”.
+sort = "Miss"
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+    "noqa",
+
+    # Don't complain about missing debug-only code
+    "def __repr__",
+    "if self\\.debug",
+
+    # Don't complain if tests don't hit defensive assertion code
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+omit = [
+]
+
+[tool.coverage.html]
+show_contexts = true
+directory = "build/report/coverage/html"
+
+[tool.coverage.xml]
+output = "build/report/coverage.xml"
+#####
+##############################################################################
+
+##############################################################################
+# -- mypy: type checking -----------------------------------------------------
+#####
+#
+# Reference: https://mypy.readthedocs.io/en/stable/config_file.html
+#
+# The mypy configuration file can be either (in priority order)
+#
+#   - specified with the --config-file flag
+#   - mypy.ini
+#   - .mypy.ini
+#   - setup.cfg
+#   - $XDG_CONFIG_HOME/mypy/config
+#   - ~/.config/mypy/config
+#   - ~/.mypy.ini
+#
+# It is important to understand that there is no merging of configuration
+# files, as it would lead to ambiguity.
+#
+###
+[tool.mypy]
+strict = true
+#no_implicit_reexport = True
+follow_imports_for_stubs = true
+# output options
+pretty = true
+# reports
+html_report = "build/report/mypy"
+#####
+##############################################################################
+
+#####
+##############################################################################
+
+##############################################################################
+# -- black: code format ------------------------------------------------------
+#####
+#
+# Reference: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
+#
+# The black configuration file can be
+#
+#   - pyproject.toml (must contains a [tool.black] table)
+#
+###
+[tool.black]
+line-length = 80
+include = '\.pyi?$'
+extend-exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.mypy_cache
+    | \.pytest_cache
+    | \.nox
+    | \.venv
+    | build
+    | dist
+  )/
+)
+'''
+#####
+##############################################################################
+
+##############################################################################
+# -- isort: import linter ----------------------------------------------------
+#####
+#
+# Reference: https://pycqa.github.io/isort/docs/configuration/config_files/
+#
+# The isort configuration file can be either
+#
+#   - as specified by the --settings-path flag
+#   - .isort.cfg (must contain a [settings] section)
+#   - pyproject.toml (must contains a [tool.isort] table)
+#   - setup.cfg (must contain a [isort] section)
+#   - tox.ini (must contains a [isort] section)
+#
+# It is important to understand that there is no merging of configuration
+# files, as it would lead to ambiguity.
+#
+###
+
+#####
+##############################################################################
+[tool.isort]
+profile = "black"
+src_paths = ["src", "test"]
+line_length = 80
+add_imports= [
+    "from __future__ import annotations",
+]
+extend_skip = [
+    "noxfile.py",
+]
+#####
+##############################################################################
+
+##############################################################################
+# -- pydocstyle: docstring style guide enforcement ---------------------------
+#####
+#
+# Reference: http://www.pydocstyle.org/en/stable/usage.html
+#
+# The pydocstyle configuration file can be either
+#
+#   - setup.cfg
+#   - tox.ini
+#   - .pydocstyle
+#   - .pydocstyle.ini
+#   - .pydocstylerc
+#   - .pydocstylerc.ini
+#   - pyproject.toml
+#
+###
+[tool.pydocstyle]
+
+# We use the Google docstring style.
+convention = "google"
+add-ignore = [
+    "D100",     # Missing docstring in public module
+    "D101",     # Missing docstring in public classe
+    "D102",     # Missing docstring in public method
+    "D103",     # Missing docstring in public function
+    "D105",     # Missing docstring in magic method
+    "D106",     # Missing docstring in nested class
+    "D107",     # Missing docstring in __init__
+    "D200",     # Allow starting docstring on second line (under """)
+    "D205",     # Allow starting docstring on second line (under """)
+    "D212",     # Allow starting docstring on second line (under """)
+    "D415",     # Allow starting docstring on second line (under """)
+    "D405",     # Allow 'See also' instead of 'See Also'
+    "D402",     # Allow backticks in summary line
+    "D417",     # Relax argument description, as per the actual Google style guide.
+                # See https://github.com/PyCQA/pydocstyle/issues/449
+]
+#####
+##############################################################################

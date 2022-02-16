@@ -1,0 +1,48 @@
+##############################################################################
+# -- flake8: style guide enforcement -----------------------------------------
+#####
+#
+# Reference: https://flake8.pycqa.org/en/latest/user/configuration.html
+#
+# The flake8 configuration file can be either
+#
+#   - setup.cfg
+#   - tox.ini
+#   - .flake8
+#   - in "user" configurations
+#
+###
+[flake8]
+
+ignore =
+    # Find lists of errors and violation codes at
+    #   http://flake8.pycqa.org/en/latest/user/error-codes.html
+    #   https://pycodestyle.readthedocs.io/en/latest/intro.html#error-codes
+    # Ignore line length since black handles this more subtly
+    E501
+    # Line breaks can go before a binary operator (and should)
+    # This rule is being changed in PEP and such, so ignoring
+    # this might become redundant.
+    W503
+    # Flake8 is not PEP8 compliant here.
+    # Let black take care of the styling minutiae
+    E203
+
+exclude =
+    .git,
+    .nox,
+    .pytest_cache,
+    .mypy_cache,
+    .venv,
+    __pycache__,
+    docs/conf.py,
+    docs/_ext,
+    build,
+    dist,
+    test/samples
+show-source = True
+max-complexity = 5
+doctests = True
+#####
+##############################################################################
+

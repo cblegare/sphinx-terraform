@@ -1,0 +1,324 @@
+##############################################################################
+# == CI/CD Pipeline ==========================================================
+# region preamble
+#####
+#
+# This files describe the lifecycle pipeline of our applications.
+#
+# Overview
+#   https://docs.gitlab.com/ee/ci/README.html
+#
+# Keyword reference
+#   https://docs.gitlab.com/ee/ci/yaml/README.html
+#
+# Predefined variables reference:
+#   https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+#
+# Environments
+#   https://docs.gitlab.com/ee/ci/environments/
+#
+###
+
+###
+# -- Global configurations
+#
+
+stages:
+  - janitor
+  - build
+  - test
+  - report
+  - release
+
+cache:
+  paths:
+    - ~/.cache/pip
+    - .nox
+
+image: python
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      # Never run a 'branch' pipeline where this branch is under MRs.
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "$CI_DEFAULT_BRANCH"
+      # Do run pipelines for schedules on the default branch
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      # Do run detached MR pipelines
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      # Do run manually triggered pipelines
+      when: always
+#
+###
+
+#####
+# endregion
+##############################################################################
+
+##############################################################################
+# -- STAGE: clean the kitchen ------------------------------------------------
+# region janitor
+#####
+#
+# Reference: https://pyup.readthedocs.io/en/latest/
+#
+.pyup:
+  stage: janitor
+  script:
+    - pip install -U pyupio
+    - pyup --provider gitlab --repo $CI_PROJECT_PATH --user-token $PROJECT_BOT_TOKEN --branch ${CI_DEFAULT_BRANCH} --initial
+  image: python:3.10
+  needs: []
+
+pyup-as-needed:
+  extends: .pyup
+  rules:
+    # Run only when manually triggered on the default branch
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      allow_failure: true
+
+pyup-nightly:
+  extends:
+    - .pyup
+  rules:
+    # Run only on schedules on the default branch
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+
+#####
+# endregion
+##############################################################################
+
+##############################################################################
+# -- STAGE: build ------------------------------------------------------------
+# region build
+#####
+#
+# build the code and dependencies and archive everything as artifacts
+#
+.build:
+  stage: build
+  needs: []
+  rules:
+    # Always run except on schedules
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: always
+
+dist:
+  extends:
+    - .build
+  script:
+    - pip install nox
+    - nox -rs build
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME-dist"
+    paths:
+      - dist/*.whl
+      - dist/*.tar.gz
+
+#####
+# endregion
+##############################################################################
+
+##############################################################################
+# -- STAGE: test -------------------------------------------------------------
+# region test
+#####
+
+.test:
+  stage: test
+  rules:
+    # Always run except on schedules
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: always
+
+###
+# -- Security and compliance jobs
+#
+
+include:
+  - template: Dependency-Scanning.gitlab-ci.yml
+  - template: Security/License-Scanning.gitlab-ci.yml
+  - template: Secret-Detection.gitlab-ci.yml
+  - template: Code-Quality.gitlab-ci.yml
+
+# Scan dependencies for vulnerabilities
+dependency_scanning:
+  extends:
+    - .test
+  variables:
+    SECURE_LOG_LEVEL: debug
+
+# Scan licences for legal issues
+license_scanning:
+  extends:
+    - .test
+  variables:
+    LM_PYTHON_VERSION: 3
+
+#
+###
+
+###
+# -- Unit testing
+
+# Unit tests
+test:
+  extends:
+    - .test
+  script:
+    - pip install -U nox
+    - nox -rs fulltest-${PYVERSION}
+  image: python:$PYVERSION
+  artifacts:
+    when: always
+    paths:
+      - build/report/coverage*
+  parallel:
+    matrix:
+      - PYVERSION: "3.10"
+      - PYVERSION: "3.9"
+      - PYVERSION: "3.8"
+      - PYVERSION: "3.7"
+  needs: []
+  allow_failure: true
+
+#
+###
+
+###
+# -- Conventions and code analysis
+#
+
+# Look for common error and antipatterns in the code
+lint:
+  extends:
+    - .test
+  script:
+    - pip install -U nox
+    - nox -rs lint
+#
+###
+
+#####
+# endregion
+##############################################################################
+
+##############################################################################
+# -- STAGE: report -----------------------------------------------------------
+# region report
+#####
+
+# Various SQA reports
+coverage:
+  stage: report
+  script:
+    - pip install -U nox
+    - nox -rs coverage
+  artifacts:
+    when: always
+    paths:
+      - build/report/coverage
+    reports:
+      cobertura: build/report/*.xml
+  needs:
+    - test
+  coverage: '/TOTAL +\d+ +\d+ +\d+ +\d+ +(\d+)%/'
+  allow_failure: false
+  rules:
+    # Always run except on schedules
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: always
+
+#####
+# endregion
+##############################################################################
+
+##############################################################################
+# -- STAGE: release ----------------------------------------------------------
+# region release
+#####
+
+.release:
+  stage: release
+
+# Publish the doc as an environment
+doc-review:
+  extends:
+    - .release
+  script:
+    - pip install -U nox
+    - nox -rs docs
+  image: python
+  environment:
+    name: doc-review/$CI_COMMIT_REF_SLUG
+    deployment_tier: development
+    on_stop: stop-doc-review
+    auto_stop_in: 2 week
+    url: https://$CI_PROJECT_ROOT_NAMESPACE.$CI_PAGES_DOMAIN/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html
+  rules:
+    # Only on branches and never on schedule
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - when: always
+
+# Publish the official docs on gitlab pages.
+pages:
+  extends:
+    - .release
+  script:
+    - pip install -U nox
+    - nox -rs docs
+    - mkdir public
+    - mv build/sphinx/html/* public/
+  environment:
+    name: production
+    deployment_tier: production
+    url: $CI_PAGES_URL
+  artifacts:
+    paths:
+      - public
+    expire_in: never
+  rules:
+    # Only run after a merge on default branch
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+
+# Kill the doc environment from time to time
+stop-doc-review:
+  extends:
+    - .release
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Remove review documentation"
+  environment:
+    name: doc-review/$CI_COMMIT_REF_SLUG
+    action: stop
+  rules:
+    # Run either (optionally) manually on a MR pipeline or triggered by on_stop.
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - when: manual
+      allow_failure: true
+
+#####
+# endregion
+##############################################################################
