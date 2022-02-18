@@ -1,0 +1,4 @@
+sphinx >= 3
+docutils
+typing_extensions;python_version < "3.8"
+importlib_metadata;python_version < "3.8"

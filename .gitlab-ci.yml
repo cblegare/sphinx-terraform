@@ -113,6 +113,7 @@ pyup-nightly:
       when: never
     - when: always
 
+# Build the distributables
 dist:
   extends:
     - .build
@@ -124,6 +125,22 @@ dist:
     paths:
       - dist/*.whl
       - dist/*.tar.gz
+
+# Build a requirements.txt file.
+#
+# The goal here **is not** to have hashed list of transitive dependencies,
+# like one would do in order to have repeatable installations or such, but
+# simply to have Gitlab's dependency scanning work.
+requirements:
+  extends:
+    - .build
+  script:
+    - pip install nox
+    - nox -rs requirements
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME-requirements"
+    paths:
+      - requirements.txt
 
 #####
 # endregion
@@ -147,25 +164,57 @@ dist:
 #
 
 include:
-  - template: Dependency-Scanning.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
   - template: Security/License-Scanning.gitlab-ci.yml
   - template: Secret-Detection.gitlab-ci.yml
-  - template: Code-Quality.gitlab-ci.yml
 
 # Scan dependencies for vulnerabilities
+#
+# Included from:
+#   Security/Dependency-Scanning.gitlab-ci.yml
+#
+# See also:
+#   https://docs.gitlab.com/ee/user/application_security/dependency_scanning/
 dependency_scanning:
   extends:
     - .test
   variables:
     SECURE_LOG_LEVEL: debug
+  needs:
+    - requirements
 
-# Scan licences for legal issues
+# Scan licences for legal issues.
+#
+# Included from:
+#   Security/License-Scanning.gitlab-ci.yml
+#
+# See also:
+#   https://docs.gitlab.com/ee/user/compliance/license_compliance/
 license_scanning:
-  extends:
-    - .test
   variables:
     LM_PYTHON_VERSION: 3
+  needs:
+    - requirements
+  rules:
+    # Always run except on schedules
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: always
 
+# Look for common secret leaks
+#
+# Included from:
+#   Secret-Detection.gitlab-ci.yml
+#
+# See also:
+#   https://docs.gitlab.com/ee/user/application_security/secret_detection/
+secret_detection:
+  needs: []
+  rules:
+    # Always run except on schedules
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: always
 #
 ###
 

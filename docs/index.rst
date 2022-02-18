@@ -21,7 +21,7 @@ Installation
 Configuration
 =============
 
-In your ``conf.py`` (:mod:`conf`) add the enable the extension and configure
+In your ``conf.py`` (:mod:`conf`), enable the extension and configure
 where to find the Terraform files:
 
 .. code-block:: python
