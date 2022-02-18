@@ -23,6 +23,7 @@ extras_require["all"] = set(
 )
 
 this_directory = Path(__file__).parent
+requirements_in = this_directory.joinpath("requirements.in")
 
 
 if __name__ == "__main__":
@@ -68,12 +69,7 @@ if __name__ == "__main__":
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         python_requires=">=3.7",
-        install_requires=[
-            "sphinx>=3",
-            "docutils",
-            "typing_extensions ; python_version<'3.8'",
-            "importlib_metadata ; python_version<'3.8'",
-        ],
+        install_requires=requirements_in.read_text().splitlines(),
         extras_require=extras_require,
         include_package_data=True,
     )

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+import shutil
 from typing import List
 
 import nox
@@ -8,12 +10,21 @@ supported_python_versions = ["3.7", "3.8", "3.9", "3.10"]
 
 default_python = sorted(supported_python_versions)[-1]
 
+repo_root = Path(__file__).parent
+
 
 @nox.session(reuse_venv=True)
 def build(session):
     session.install("build", "twine")
     session.run("python", "-m", "build")
     session.run("python", "-m", "twine", "check", "--strict", "dist/*")
+
+
+@nox.session(reuse_venv=True)
+def requirements(session):
+    shutil.copyfile(
+        repo_root / "requirements.in", repo_root / "requirements.txt"
+    )
 
 
 @nox.session(reuse_venv=True)

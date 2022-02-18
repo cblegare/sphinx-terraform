@@ -8,3 +8,4 @@ build
 dist
 .idea/
 docs/apidoc/sphinx_terraform*.rst
+requirements.txt
