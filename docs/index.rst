@@ -4,27 +4,44 @@
 
 .. container:: tagline
 
-    A Sphinx_ extension for documenting Terraform modules.
+    A Sphinx_ extension for documenting **Terraform** modules.
 
-    .. important:: **Terraform** and the Terraform Logo are trademarks
-        of HashiCorp_. |project| is not associated with HashiCorp.
+|project| is simple to use and integrate smoothly with your Terraform codebase.
+
+    Programs must be written for people to read, and only incidentally
+    for machines to execute.
+
+    -- `SICP <https://mitpress.mit.edu/sites/default/files/sicp/index.html>`__
 
 
-Installation
-============
+Code can become reusable when it is clearly visible, searchable and
+referenceable.  |project| will help
+
+*   **make reusable modules** that application developers will find easier
+    to find, understand and use, thus reducing bugs, support time and *toil*;
+
+*   **show value to stakeholders**, since Infrastructure as Code is an abstract
+    and obscure topic for non-practitioners;
+
+*   **promote knowledge** and foster a community spirit around your code;
+
+*   **keep track** of *why* things work the way they do.
+
+
+Quick start
+===========
+
+Install |project|:
 
 .. code-block:: shell
 
     pip install -U sphinx-terraform
 
-
-Configuration
-=============
-
-In your ``conf.py`` (:mod:`conf`), enable the extension and configure
-where to find the Terraform files:
+Enable |project| in your ``conf.py`` (:mod:`conf`), and configure where
+to find the Terraform files:
 
 .. code-block:: python
+    :caption: conf.py
 
     extensions = [
         # other extensions ...
@@ -35,14 +52,11 @@ where to find the Terraform files:
 
 .. tip:: For details about **configuration**, see :ref:`configuration`.
 
-
-Usage
-=====
-
 Place your Terraform documentation within your RestructuredText source files
 using one of our directive:
 
 .. code-block:: rst
+    :caption: some_documentation.rst
 
     .. tf:resource:: foo_resource.bar
 
@@ -51,6 +65,7 @@ using one of our directive:
 Then cross-reference your definitions with some of our roles:
 
 .. code-block:: rst
+    :caption: some_other_documentation.rst
 
     You should really check out :rf:resource:`foo_resource.bar`.
 
@@ -78,3 +93,7 @@ Indices and references
 *   :ref:`tf-terraformindex`
 *   :ref:`search`
 *   :ref:`glossary`
+
+
+.. important:: **Terraform** and the Terraform Logo are trademarks
+        of HashiCorp_. |project| is not associated with HashiCorp.

@@ -437,6 +437,18 @@ todo_include_todos = True
 ###
 
 ###
+# -- Options for Copybutto,
+#
+# Using regexp prompt identifiers
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
+# Honor line continuation characters when copying multline-snippets
+copybutton_line_continuation_character = "\\"
+# Honor HERE-document syntax when copying multiline-snippets
+copybutton_here_doc_delimiter = "EOT"
+###
+
+###
 # -- Options for sphinxcontrib-bibtex
 bibtex_bibfiles = [
     str(bibtext_file.relative_to(DOC_ROOT))

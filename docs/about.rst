@@ -11,9 +11,9 @@ About
 License
 =======
 
-Sphinx Terraform Domain
+|project|
 
-Copyright (C) 2022  Charles Bouchard-Légaré
+Copyright © 2022  Charles Bouchard-Légaré
 
 
 .. literalinclude:: ../LICENSE
