@@ -1,3 +1,27 @@
 :root {
     --pst-color-inline-code: 123, 66, 188;
 }
+
+/***
+    Style a "subtitle" (tagline)
+ */
+.tagline {
+    position: relative;
+    line-height:1;
+    top: 0px; /* Changes the space between the logo and the slogan */
+    text-align: center;
+    font-size:1.3em;
+    font-style: italic;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    color: var(--pst-color-text-base); /* Changes the color of the slogan */
+    letter-spacing:0px; /* Changes the letter spacing of the slogan */
+}
+
+/***
+    Make the code-block copy button always visible
+ */
+button.copybtn {
+   opacity: 1;
+}
+

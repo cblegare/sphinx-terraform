@@ -13,6 +13,7 @@ Glossary
         HashiCorp describes modules as
 
             A module is a container for multiple resources that are used together.
+
             -- https://www.terraform.io/language/modules/syntax
 
         A Terraform module is a directory containing Terraform definition files
@@ -26,28 +27,31 @@ Glossary
         In |project|, the **root module** name comes from the documentation
         configuration. Its *fullname* is the same as its name.
 
-        See :confval:`terraform_sources`.
+        See the :confval:`terraform_sources` configuration value.
 
     Sub modules
     Submodule
         Sub modules are :term:`modules` that are under a :term:`root module`.
         Sub modules are named by their directory name and their *fullname*
         is derived from their parents names using slashes (``/``) as
-        separators. Within |project|, modules are like filesystem path
-        relative to a **root module's** name.
+        separators.
+
+        Within |project|, modules are like filesystem path relative to a
+        **root module's** name.
 
     Module block
-        A HCL definition block that **calls** a child module.
+    Module call
+        A HCL definition block that **calls** (or *uses*) a child module.
 
         See also https://www.terraform.io/language/modules/syntax#calling-a-child-module.
 
     Roles
-        Roles are used to cross-reference any documented objects, even
-        traversing documentation sites.  This means you can use roles to
-        cross-reference object *defined in other projects*, thanks to the
-        :mod:`sphinx.ext.intersphinx` Sphinx builtin extension.
+        Roles are often used to cross-reference any documented objects,
+        even traversing documentation sites. This means you can use roles
+        to cross-reference object *defined in other projects*, thanks to
+        the :mod:`sphinx.ext.intersphinx` Sphinx builtin extension.
 
-        See also :term:`roles within the Sphinx glossary <sphinx:role>`.
+        See also :term:`roles in the official Sphinx glossary <sphinx:role>`.
 
         Roles are inline pieces of interpreted text that looks like:
 
@@ -66,10 +70,10 @@ Glossary
         **domain**
             This would be the domain name, valued ``tf``.
 
-            The domain can be made optional by either locally (within a
-            single document) using the :rst:dir:`default-domain` *directive*
+            The domain can be made optional by either **locally** (within
+            a single document) using the :rst:dir:`default-domain` *directive*
             while the :confval:`primary_domain` *configuration* selects
-            a global default
+            a **global** default
 
         **object_type**
             The Terraform domain defines several objects types (``resource``,
