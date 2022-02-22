@@ -19,7 +19,8 @@ from typing import (
     cast,
 )
 
-from docutils import nodes
+import sphinx.parsers
+from docutils import nodes, utils
 from docutils.nodes import Element, Node, system_message
 from docutils.parsers.rst import directives
 from docutils.statemachine import StringList
@@ -35,7 +36,11 @@ from sphinx.util.logging import getLogger
 from sphinx.util.nodes import make_refnode
 from sphinx.util.typing import OptionSpec
 
-from sphinx_terraform import SphinxTerraformError, get_env
+from sphinx_terraform import (
+    SphinxTerraformError,
+    get_config_terraform_comment_markup,
+    get_env,
+)
 from sphinx_terraform.i18n import t_
 from sphinx_terraform.sphinxapi import (
     SphinxDomainObjectDescription,
@@ -66,19 +71,31 @@ log = getLogger(__name__)
 T = TypeVar("T", bound=str)
 
 
+def parser_for_markup(markup_language_id: str) -> Type[sphinx.parsers.Parser]:
+    markup_language_id = markup_language_id.lower()
+    if markup_language_id in ("md", "myst", "markdown"):
+        try:
+            from myst_parser.sphinx_parser import MystParser
+
+            return MystParser
+        except ImportError as e:
+            raise SphinxTerraformError(
+                "In order to use Markdown in Terraform comments, "
+                "you need the MyST parser. "
+                "Install Sphinx-Terraform with the 'markdown' extra by "
+                "issuing the 'pip install sphinx-terraform[markdown]' command. "
+                "Then, enable it in your extensions.  "
+                "See https://myst-parser.readthedocs.io/ for details"
+            ) from e
+    return sphinx.parsers.RSTParser
+
+
 class TerraformObjectDirective(ObjectDescription[str]):
-    """
-    Hey look ma
-
-    .. code-block:: shell
-
-        rm -rf proute
-    """
-
     option_spec: OptionSpec = {
         "noindex": directives.flag,
         "rootmodule": directives.unchanged,
         "module": directives.unchanged,
+        "markup": directives.unchanged,
     }
 
     allow_nesting = False
@@ -268,14 +285,67 @@ class TerraformObjectDirective(ObjectDescription[str]):
         for line in code:
             log.debug(line)
 
+        comment_nodes = self._parse_terraform_comment(hcl_def)
+        contentnode.extend(comment_nodes)
+
+    def _local_code_url(self, hcl_def: HclDefinition) -> str:
+        return f"{hcl_def.file}#L{hcl_def.doc_code.start_position.line}-L{hcl_def.doc_code.end_position.line}"
+
+    def _parse_comment_with_external_parser(
+        self, hcl_def: HclDefinition, markup_id: str
+    ) -> List[Node]:
+        parser_class = parser_for_markup(markup_id)
+        parser = parser_class()
+        parser.set_application(self.env.app)
+        document = utils.new_document(
+            self._local_code_url(hcl_def), self.state.document.settings
+        )
+
+        code = self._domain.store.get_documentation(hcl_def)
+
+        parser.parse("\n".join(code), document)
+        return document.children
+
+    def _parse_comment_with_current_parser(
+        self, hcl_def: HclDefinition
+    ) -> List[Node]:
+        document = utils.new_document(
+            self._local_code_url(hcl_def), self.state.document.settings
+        )
+
+        code = self._domain.store.get_documentation(hcl_def)
+
         self.state.nested_parse(
             StringList(
                 code,
-                source="",
+                source=str(hcl_def.file),
             ),
             self.content_offset,
-            contentnode,
+            document,
         )
+
+        return document.children
+
+    def _parse_comment_markdown_comment(
+        self, hcl_def: HclDefinition
+    ) -> List[Node]:
+        return self._parse_comment_with_external_parser(hcl_def, "markdown")
+
+    def _parse_comment_restructuredtext_comment(
+        self, hcl_def: HclDefinition
+    ) -> List[Node]:
+        return self._parse_comment_with_external_parser(
+            hcl_def, "restructuredtext"
+        )
+
+    def _parse_terraform_comment(self, hcl_def: HclDefinition) -> List[Node]:
+        markup_id = self.options.get(
+            "markup", get_config_terraform_comment_markup(self.env)
+        )
+        if markup_id:
+            return self._parse_comment_with_external_parser(hcl_def, markup_id)
+        else:
+            return self._parse_comment_with_current_parser(hcl_def)
 
 
 class TerraformCrossReferenceRole(XRefRole):
@@ -393,10 +463,10 @@ class TerraformCrossReferenceRole(XRefRole):
             return f":{self.name}:`{self.target}`"
 
 
-class TerraformIndex(Index):
-    name = "terraformindex"
-    localname = "Terraform Index"
-    shortname = "tf"
+class TerraformDefinitionsIndex(Index):
+    name = "definitionsindex"
+    localname = "Terraform Definitions Index"
+    shortname = localname
 
     def generate(
         self, docnames: Optional[Iterable[str]] = None
@@ -502,7 +572,7 @@ class TerraformDomain(Domain):
         "module": TerraformCrossReferenceRole(),
         "data": TerraformCrossReferenceRole(),
     }
-    indices: List[Type[Index]] = [TerraformIndex]
+    indices: List[Type[Index]] = [TerraformDefinitionsIndex]
     initial_data: DomainData = {  # type: ignore # base class defined the type as "Dict[Any, Any]"
         "terraform": TerraformStore.initial_data(),
         "sphinx": {},

@@ -6,7 +6,10 @@ from setuptools import find_packages, setup
 
 extras_require = {
     "test": ["nox"],
+    "markdown": ["myst_parser", "docutils>=0.16"],
     "docs": [
+        "myst_parser",
+        "docutils>=0.16",
         "sphinx_autodoc_typehints",
         "sphinx_paramlinks",
         "sphinx_copybutton",

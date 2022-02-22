@@ -1,2 +1,4 @@
-test-domain-tf
-===============
+test-basic
+==========
+
+Minimal smoke test.

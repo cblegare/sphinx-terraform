@@ -86,11 +86,19 @@ Then cross-reference your definitions with some of our roles:
     about
 
 
+**Sphinx-Terraform** is
+
+- `Hosted on Gitlab <https://gitlab.com/cblegare/sphinx-terraform>`__
+- `Mirrored on Github <https://github.com/cblegare/sphinx-terraform>`__
+- `Distributed on PyPI <https://pypi.org/project/sphinx-terraform/>`__
+- `Documented online <https://cblegare.gitlab.io/sphinx-terraform/>`__
+
+
 Indices and references
 ======================
 
 *   :ref:`genindex`
-*   :ref:`tf-terraformindex`
+*   :ref:`tf-definitionsindex`
 *   :ref:`search`
 *   :ref:`glossary`
 
