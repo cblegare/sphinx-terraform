@@ -83,6 +83,7 @@ extensions = [
     "sphinx_tabs.tabs",  # Create tabbed content when building HTML.
     "sphinx_terraform",
     "sphinx_terraform.viewcode",
+    "myst_parser",
 ]
 for module_file in DOC_EXT_ROOT.glob("[!_]*.py"):
     extensions.append(module_file.stem)

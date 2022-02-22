@@ -72,6 +72,23 @@ module "sub" {
 resource "foo_resource" "baz" {
 }
 
+/**
+  Here is documentation in Markdown (MyST).
+
+  Use it like so:
+
+  ```rst
+  .. tf:resource:: foo_resource.markdown
+      :markup: md
+  ```
+
+  Also, an [hyperlink](https://cblegare.gitlab.io/sphinx-terraform).
+
+  See {ref}`markdown` for details.
+ */
+resource "foo_resource" "markdown" {
+}
+
 # Documentation for this data.
 #
 # Might be somewhat related to :tf:resource:`foo_resource.baz`.

@@ -45,7 +45,8 @@ class SphinxTerraformError(SphinxError):
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.require_sphinx("3")
 
-    app.add_config_value("terraform_sources", ".", "", [str, dict])
+    app.add_config_value("terraform_sources", app.srcdir, "env", [str, dict])
+    app.add_config_value("terraform_comment_markup", "", "env", [str])
     from sphinx_terraform.markup import TerraformDomain
 
     app.add_domain(TerraformDomain)
@@ -55,6 +56,12 @@ def setup(app: Sphinx) -> ExtensionMetadata:
         "parallel_read_safe": True,
         "parallel_write_safe": True,
     }
+
+
+def get_config_terraform_comment_markup(env: BuildEnvironment) -> str:
+    configured = env.config.terraform_comment_markup
+
+    return str(configured)
 
 
 def get_config_terraform_sources(

@@ -53,12 +53,20 @@ The format is based on `Keep a Changelog`_, and this project will adheres to
 
 .. _release-next:
 
-In progress
-===========
+0.2 - unreleased
+================
 
 .. admonition:: Downloads
 
     Stay tuned!
+
+
+Added
+-----
+
+*   Added :confval:`terraform_comment_markup` and the ``:markup:`` option
+    in :ref:`directives` to allow mixing Markdown and RestructuredText.
+    See :ref:`markdown` for details. (:mr:`5`)
 
 
 .. _release-0.1:

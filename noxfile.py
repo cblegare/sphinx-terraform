@@ -44,7 +44,7 @@ def fulltest(session):
 
 @nox.session(python=supported_python_versions)
 def pytest(session):
-    session.install(".", "pytest", "coverage[toml]")
+    session.install(".[markdown]", "pytest", "coverage[toml]")
     session.run(*_coverage_cmd(session.name, ["pytest", "test"]))
 
 
@@ -82,7 +82,7 @@ def docstringstyle(session):
 @nox.session(reuse_venv=True, python=supported_python_versions)
 def typing(session):
     session.install(
-        ".",
+        ".[markdown]",
         "mypy",
         "lxml",
         "docutils-stubs",
