@@ -53,12 +53,22 @@ The format is based on `Keep a Changelog`_, and this project will adheres to
 
 .. _release-next:
 
-0.2 - unreleased
+0.3 - unreleased
 ================
 
 .. admonition:: Downloads
 
     Stay tuned!
+
+
+.. _release-0.2:
+
+0.2 - 2022-03-15
+================
+
+.. admonition:: Downloads
+
+    :release:`0.2`
 
 
 Added
